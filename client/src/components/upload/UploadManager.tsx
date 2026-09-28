@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Upload, X, CheckCircle2, AlertCircle, FileUp, Trash2 } from 'lucide-react';
 import { fileService } from '../../services/fileService.js';
 import { formatBytes } from '../../utils/formatters.js';
@@ -122,8 +123,8 @@ export const UploadManager: React.FC<UploadManagerProps> = ({ folderId, onUpload
         <span>Upload</span>
       </button>
 
-      {isVisible && items.length > 0 && (
-        <div className="fixed bottom-4 right-4 z-50 w-80 sm:w-96 card bg-slate-900 border-slate-700 shadow-2xl animate-fade-in overflow-hidden">
+      {isVisible && items.length > 0 && typeof document !== 'undefined' && createPortal(
+        <div className="fixed bottom-6 right-6 z-[9999] w-80 sm:w-96 card bg-slate-900 border-slate-700 shadow-2xl animate-fade-in overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-800/90 border-b border-slate-700">
             <div className="flex items-center gap-2">
@@ -207,7 +208,8 @@ export const UploadManager: React.FC<UploadManagerProps> = ({ folderId, onUpload
               Clear & Close
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
