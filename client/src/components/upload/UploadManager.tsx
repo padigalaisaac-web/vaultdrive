@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, Pause, Play, CheckCircle2, AlertCircle, FileUp } from 'lucide-react';
-import { clsx } from 'clsx';
+import { Upload, X, CheckCircle2, AlertCircle, FileUp, Trash2 } from 'lucide-react';
 import { fileService } from '../../services/fileService.js';
 import { formatBytes } from '../../utils/formatters.js';
 import { ProgressBar } from '../ui/index.js';
@@ -78,7 +77,16 @@ export const UploadManager: React.FC<UploadManagerProps> = ({ folderId, onUpload
   }, [startUpload]);
 
   const removeItem = (id: string) => {
-    setItems(prev => prev.filter(it => it.id !== id));
+    setItems(prev => {
+      const remaining = prev.filter(it => it.id !== id);
+      if (remaining.length === 0) setIsVisible(false);
+      return remaining;
+    });
+  };
+
+  const clearAll = () => {
+    setItems([]);
+    setIsVisible(false);
   };
 
   const retryItem = async (item: UploadItem) => {
@@ -115,68 +123,89 @@ export const UploadManager: React.FC<UploadManagerProps> = ({ folderId, onUpload
       </button>
 
       {isVisible && items.length > 0 && (
-        <div className="fixed bottom-4 right-4 z-40 w-80 card shadow-xl animate-fade-in">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+        <div className="fixed bottom-4 right-4 z-50 w-80 sm:w-96 card bg-slate-900 border-slate-700 shadow-2xl animate-fade-in overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-800/90 border-b border-slate-700">
             <div className="flex items-center gap-2">
               <FileUp className="w-4 h-4 text-brand-400" />
-              <span className="text-sm font-medium text-slate-200">
-                {activeCount > 0 ? `Uploading ${activeCount} file(s)…` : `${doneCount}/${items.length} done`}
+              <span className="text-xs sm:text-sm font-semibold text-slate-200">
+                {activeCount > 0 ? `Uploading ${activeCount} file(s)…` : `${doneCount}/${items.length} completed`}
               </span>
             </div>
-            <button
-              onClick={() => { setIsVisible(false); setItems([]); }}
-              className="text-slate-500 hover:text-slate-300 transition-colors"
-              aria-label="Close upload panel"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={clearAll}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-md transition-colors"
+                title="Dismiss & Close"
+                aria-label="Close upload panel"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          <div className="max-h-72 overflow-y-auto divide-y divide-slate-700">
+          {/* Items list */}
+          <div className="max-h-72 overflow-y-auto divide-y divide-slate-800">
             {items.map(item => (
-              <div key={item.id} className="px-4 py-3">
-                <div className="flex items-start gap-2">
+              <div key={item.id} className="p-3.5 hover:bg-slate-800/40 transition-colors">
+                <div className="flex items-start gap-2.5">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-slate-200 truncate" title={item.file.name}>
                       {item.file.name}
                     </p>
-                    <p className="text-xs text-slate-500 mt-0.5">{formatBytes(item.file.size)}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{formatBytes(item.file.size)}</p>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     {item.status === 'done' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
                     {item.status === 'error' && (
-                      <button onClick={() => retryItem(item)} title="Retry">
-                        <AlertCircle className="w-4 h-4 text-red-400 hover:text-red-300" />
+                      <button onClick={() => retryItem(item)} className="p-1 hover:bg-slate-800 rounded" title="Retry">
+                        <AlertCircle className="w-4 h-4 text-red-400" />
                       </button>
                     )}
-                    {item.status !== 'done' && (
-                      <button onClick={() => removeItem(item.id)} className="text-slate-500 hover:text-slate-300">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => removeItem(item.id)}
+                      className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+                      title="Remove"
+                      aria-label="Remove item"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
 
-                {(item.status === 'uploading') && (
+                {item.status === 'uploading' && (
                   <div className="mt-2">
                     <ProgressBar value={item.progress} />
-                    <p className="text-xs text-slate-500 mt-1 text-right">{item.progress}%</p>
+                    <p className="text-[11px] text-slate-400 mt-1 text-right">{item.progress}%</p>
                   </div>
                 )}
 
                 {item.status === 'duplicate' && (
-                  <p className="text-xs text-yellow-400 mt-1">⚠ Duplicate — file already exists</p>
+                  <p className="text-[11px] text-amber-400 mt-1">⚠ Duplicate — file already exists</p>
                 )}
 
                 {item.status === 'error' && (
-                  <p className="text-xs text-red-400 mt-1">{item.error || 'Upload failed'}</p>
+                  <p className="text-[11px] text-red-400 mt-1">{item.error || 'Upload failed'}</p>
                 )}
 
                 {item.status === 'queued' && item.error && (
-                  <p className="text-xs text-slate-400 mt-1">{item.error}</p>
+                  <p className="text-[11px] text-brand-300 mt-1 flex items-center justify-between">
+                    <span>{item.error}</span>
+                  </p>
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Footer with Clear All button */}
+          <div className="px-4 py-2 bg-slate-800/60 border-t border-slate-800 flex justify-end">
+            <button
+              onClick={clearAll}
+              className="text-xs font-medium text-slate-400 hover:text-white flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-slate-700 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Clear & Close
+            </button>
           </div>
         </div>
       )}
@@ -184,5 +213,4 @@ export const UploadManager: React.FC<UploadManagerProps> = ({ folderId, onUpload
   );
 };
 
-// Export addFiles function reference for external use
 export const createUploadTrigger = (addFilesFn: (files: File[]) => void) => addFilesFn;
