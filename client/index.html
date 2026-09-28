@@ -18,15 +18,9 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.port === '4173')) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('[SW] Registered successfully with scope: ', registration.scope);
-            })
-            .catch(err => {
-              console.warn('[SW] Registration failed: ', err);
-            });
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
         });
       }
     </script>

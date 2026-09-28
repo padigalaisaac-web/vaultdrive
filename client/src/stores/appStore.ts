@@ -105,6 +105,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   initAuth: async () => {
     set({ isLoadingAuth: true });
+
+    // Always subscribe to network changes
+    networkDetector.subscribe((status) => {
+      set({ networkStatus: status });
+    });
+
     const storedUser = authService.getStoredUser();
     if (storedUser && authService.isAuthenticated()) {
       set({ user: storedUser, isAuthenticated: true });
@@ -122,11 +128,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (conflicts && conflicts.length > 0) {
           set({ pendingConflicts: conflicts });
         }
-      });
-
-      // Network status listener
-      networkDetector.subscribe((status) => {
-        set({ networkStatus: status });
       });
     }
     set({ isLoadingAuth: false });

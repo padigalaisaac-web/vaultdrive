@@ -9,7 +9,6 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching static app shell');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );
@@ -21,7 +20,6 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('[Service Worker] Removing old cache', key);
             return caches.delete(key);
           }
         })
@@ -33,11 +31,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Do not cache API calls in Service Worker cache; IndexedDB handles offline API data!
+  // Never intercept dev server internals or extensions
+  if (
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/src/') ||
+    url.pathname.includes('node_modules') ||
+    url.pathname.includes('vite') ||
+    (url.protocol !== 'http:' && url.protocol !== 'https:')
+  ) {
+    return;
+  }
+
+  // API calls handled by app / IndexedDB
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() => {
-        // Return offline JSON response if network fails
         return new Response(
           JSON.stringify({
             offline: true,
@@ -54,11 +62,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets and SPA navigation: Cache First with Network Fallback
+  // Static assets and SPA navigation
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch update in background for next time
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
@@ -81,7 +88,6 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          // If navigation request fails, return cached index.html
           if (event.request.mode === 'navigate') {
             return caches.match('/index.html');
           }
