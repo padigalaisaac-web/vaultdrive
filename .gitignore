@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+storage/
+temp_chunks/
+vaultdrive_local_db.json
+*.log
+.DS_Store
