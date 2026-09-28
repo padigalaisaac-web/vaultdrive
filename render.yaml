@@ -6,7 +6,7 @@ services:
     plan: free
     region: oregon
     rootDir: server
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -34,7 +34,7 @@ services:
     plan: free
     region: oregon
     rootDir: client
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     staticPublishPath: dist
     routes:
       # SPA rewrite rule so React Router routes don't return 404
