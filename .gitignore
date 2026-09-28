@@ -3,7 +3,8 @@ dist/
 build/
 .env
 .env.local
-storage/
+/storage/
+server/storage/
 temp_chunks/
 vaultdrive_local_db.json
 *.log
