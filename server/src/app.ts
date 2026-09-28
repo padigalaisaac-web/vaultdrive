@@ -42,6 +42,17 @@ export const createApp = (): express.Application => {
   // Global API Rate Limiter
   app.use('/api', apiLimiter);
 
+  // Root welcome endpoint
+  app.get('/', (req, res) => {
+    res.status(200).json({
+      service: 'VaultDrive Backend API',
+      status: 'online',
+      version: '1.0.0',
+      uiUrl: 'http://localhost:5173',
+      message: 'Backend API is running! To access the VaultDrive user interface, open http://localhost:5173 in your browser.'
+    });
+  });
+
   // Mount API Endpoints
   app.use('/api', apiRoutes);
 
