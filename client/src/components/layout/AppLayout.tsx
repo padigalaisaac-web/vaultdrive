@@ -6,6 +6,7 @@ import { MobileBottomNav } from './MobileBottomNav.js';
 import { OfflineBanner } from '../OfflineBanner.js';
 import { ConflictModal } from '../sync/ConflictModal.js';
 import { OnboardingModal } from '../onboarding/OnboardingModal.js';
+import { UploadProgressModal } from '../upload/UploadProgressModal.js';
 
 export const AppLayout: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ export const AppLayout: React.FC = () => {
       <MobileBottomNav />
       <ConflictModal />
       <OnboardingModal />
+      <UploadProgressModal />
     </div>
   );
 };

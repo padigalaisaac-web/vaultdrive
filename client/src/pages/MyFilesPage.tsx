@@ -9,6 +9,7 @@ import {
   HardDrive
 } from 'lucide-react';
 import { useAppStore } from '../stores/appStore.js';
+import { useUploadStore } from '../stores/uploadStore.js';
 import { fileService } from '../services/fileService.js';
 import { folderService } from '../services/folderService.js';
 import { FileItem, Folder } from '../types/index.js';
@@ -94,15 +95,8 @@ export const MyFilesPage: React.FC = () => {
     loadData();
   };
 
-  const handleDropFiles = async (droppedFiles: File[]) => {
-    for (const f of droppedFiles) {
-      try {
-        await fileService.uploadFile(f, { folderId: currentFolderId });
-      } catch {
-        // Handled in service / queued
-      }
-    }
-    loadData();
+  const handleDropFiles = (droppedFiles: File[]) => {
+    useUploadStore.getState().addFiles(droppedFiles, currentFolderId);
   };
 
   // Sorting
